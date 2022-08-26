@@ -1,0 +1,379 @@
+openapi: 3.0.0
+info:
+  title: scrapyd
+  version: '1.0'
+  contact:
+    name: Kristian
+  license:
+    name: MIT
+  description: ''
+servers:
+  - url: 'http://localhost:6800'
+paths:
+  /daemonstatus.json:
+    get:
+      summary: daemonstatus.json
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stauts:
+                    type: string
+                    example: ok
+                  running:
+                    type: string
+                    example: '0'
+                  pendning:
+                    type: string
+                    example: '0'
+                  finished:
+                    type: string
+                    example: '0'
+                  node_name:
+                    type: string
+                    example: node-name
+          headers: {}
+      operationId: get-daemonstatus.json
+      description: To check the load status of a service.
+      requestBody: {}
+  /addversion.json:
+    post:
+      summary: addversion.json
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  spiders:
+                    type: number
+          headers:
+            header-0:
+              schema:
+                type: string
+      operationId: post-addversion.json
+      description: 'Add a version to a project, creating the project if it doesn’t exist.'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                project:
+                  type: string
+                  description: the project name
+                  example: myproject
+                version:
+                  type: string
+                  description: the project version
+                  example: r23
+                egg:
+                  type: string
+                  description: a Python egg containing the project’s code
+                  example: '@myproject.egg'
+              required:
+                - project
+                - version
+                - egg
+        description: ''
+      parameters: []
+  /schedule.json:
+    post:
+      summary: schedule.json
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  jobid:
+                    type: string
+                    example: 6487ec79947edab326d6db28a2d86511e8247444
+      operationId: post-schedule.json
+      description: 'Schedule a spider run (also known as a job), returning the job id.'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                project:
+                  type: string
+                  description: the project name
+                  example: myproject
+                spider:
+                  type: string
+                  description: the spider name
+                  example: somespider
+                setting:
+                  type: string
+                  description: a Scrapy setting to use when running the spider
+                  example: DOWNLOAD_DELAY=2
+                jobid:
+                  type: string
+                  description: 'a job id used to identify the job, overrides the default generated UUID'
+                  example: 6487ec79947edab326d6db28a2d86511e8247444
+                _version:
+                  type: string
+                  description: |-
+                    the version of the project to use
+                    any other parameter is passed as spider argument
+                  example: r99
+              required:
+                - project
+                - spider
+  /cancel.json:
+    post:
+      summary: cancel.json
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  projects:
+                    type: array
+                    example: '["myproject", "otherproject"]'
+                    items:
+                      type: string
+      operationId: post-cancel.json
+      description: 'Cancel a spider run (aka. job). If the job is pending, it will be removed. If the job is running, it will be terminated.'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                project:
+                  type: string
+                  description: the project name
+                  example: myproject
+                job:
+                  type: string
+                  description: the job id
+                  example: 6487ec79947edab326d6db28a2d86511e8247444
+              required:
+                - project
+                - job
+  /listprojects.json:
+    get:
+      summary: listprojects.json
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  projects:
+                    type: string
+                    example: '["myproject", "otherproject"]'
+      operationId: get-listprojects.json
+      description: Get the list of projects uploaded to this Scrapy server.
+  /listversions.json:
+    get:
+      summary: listversions.json
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  versions:
+                    type: string
+                    example: '["r99", "r156"]}'
+      operationId: get-listversions.json
+      description: 'Get the list of versions available for some project. The versions are returned in order, the last one is the currently used version.'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                project:
+                  type: string
+                  example: myproject
+                  description: the project name
+              required:
+                - project
+  /listspiders.json:
+    get:
+      summary: listspiders.json
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  spiders:
+                    type: string
+                    example: '["spider1", "spider2", "spider3"]'
+      operationId: get-listspiders.json
+      description: Get the list of spiders available in the last (unless overridden) version of some project.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                project:
+                  type: string
+                  example: myproject
+                  description: the project name
+                _version:
+                  type: string
+                  example: r99
+                  description: the version of the project to examine
+              required:
+                - project
+  /listjobs.json:
+    get:
+      summary: listjobs.json
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+              examples:
+                example:
+                  value:
+                    status: ok
+                    pending:
+                      - project: myproject
+                        spider: spider1
+                        id: 78391cc0fcaf11e1b0090800272a6d06
+                    running:
+                      - id: 422e608f9f28cef127b3d5ef93fe9399
+                        project: myproject
+                        spider: spider2
+                        start_time: '2012-09-12 10:14:03.594664'
+                    finished:
+                      - id: 2f16646cfcaf11e1b0090800272a6d06
+                        project: myproject
+                        spider: spider3
+                        start_time: '2012-09-12 10:14:03.594664'
+                        end_time: '2012-09-12 10:24:03.594664'
+      operationId: get-listjobs.json
+      description: 'Get the list of pending, running and finished jobs of some project.'
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                project:
+                  type: string
+                  example: myproject
+                  description: the name of the project
+  /delversion.json:
+    post:
+      summary: delversion.json
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+      operationId: post-delversion.json
+      description: 'Delete a project version. If there are no more versions available for a given project, that project will be deleted too.'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                project:
+                  type: string
+                  description: the project name
+                  example: myproject
+                version:
+                  type: string
+                  description: the project version
+                  example: r99
+              required:
+                - project
+                - version
+  /delproject.json:
+    post:
+      summary: delproject.json
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+      operationId: post-delproject.json
+      description: Delete a project and all its uploaded versions.
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                project:
+                  type: string
+                  example: myproject
+                  description: the project name
+              required:
+                - project
+        description: ''
+components:
+  schemas: {}
+  securitySchemes: {}
